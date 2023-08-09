@@ -3,11 +3,11 @@ require("dotenv").config();
 const { MongoClient } = require("mongodb");
 
 let dbConnection;
-const atlasConnectionString = process.env.MONGODB_CONNECTION_STRING;
+const atlasConnectionString = process.env.MONGODB_LOCAL_CONNECTION_STRING;
 
 /// Conecta con el servidor de MongoDB.
 const connectToDB = (cb) => {
-	MongoClient.connect(atlasConnectionString)
+	return MongoClient.connect(atlasConnectionString)
 		.then((client) => {
 			dbConnection = client.db();
 			return cb();
