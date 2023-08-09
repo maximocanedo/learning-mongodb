@@ -11,21 +11,20 @@ connectToDB((err) => {
 });
 
 const router = express.Router();
-//const db = await getDB();
 
-router.get("/", (req, res) => {
-	// Implementación de la ruta GET /users/
-	res.status(418).json({
-		ok: 200,
-	});
-});
+router.get("/", (req, res) => {});
 
 router.post("/", (req, res) => {
 	const data = req.body;
-	const user1 = new User(data);
-	user1.save().then((e) => {
-		res.status(201).json(e);
-	});
+	try {
+		const user1 = new User(data);
+		user1.sayHi();
+		user1.save();
+		res.status(201).json(user1);
+	} catch (err) {
+		res.status(400).json({ err: err.message });
+		console.error(err);
+	}
 });
 
 module.exports = router;
