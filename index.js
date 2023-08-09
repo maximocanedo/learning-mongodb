@@ -19,7 +19,10 @@ connectToDB((err) => {
 		db = getDB();
 	}
 });
+
 // Routes
+
+// Obtener todos los libros
 app.get("/books", (req, res) => {
 	const page = req.query.p || 0;
 	const booksPerPage = 2;
@@ -42,6 +45,7 @@ app.get("/books", (req, res) => {
 		});
 });
 
+// Obtener un libro en particular.
 app.get("/books/:id", (req, res) => {
 	let id = req.params.id;
 	if (!ObjectId.isValid(id)) {
@@ -63,6 +67,8 @@ app.get("/books/:id", (req, res) => {
 		});
 	return;
 });
+
+// Insertar datos de un nuevo libro.
 app.post("/books", (req, res) => {
 	const book = req.body;
 	db.collection("books")
@@ -74,6 +80,8 @@ app.post("/books", (req, res) => {
 			res.status(500).json(err);
 		});
 });
+
+// Eliminar un libro en particular.
 app.delete("/books/:id", (req, res) => {
 	let id = req.params.id;
 	if (!ObjectId.isValid(id)) {
@@ -91,6 +99,8 @@ app.delete("/books/:id", (req, res) => {
 			res.status(500).json(err);
 		});
 });
+
+// Modificar los datos de un libro en particular.
 app.patch("/books/:id", (req, res) => {
 	let id = req.params.id;
 	const updates = req.body;
