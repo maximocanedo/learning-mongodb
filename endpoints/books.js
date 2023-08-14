@@ -1,6 +1,7 @@
 const express = require("express");
 const { ObjectId } = require("mongodb");
 const { connectToDB, getDB } = require("../db");
+const Book = require("./../schemas/Book");
 
 const router = express.Router();
 let db;
@@ -9,32 +10,26 @@ connectToDB((err) => {
 		db = getDB();
 	}
 });
+
 // Obtener todos los libros
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
 	const page = req.query.p || 0;
 	const booksPerPage = 2;
-
-	let books = [];
-
-	db.collection("books")
-		.find() // Cursor toArray forEach
-		.sort({ author: 1 })
-		.skip(page * booksPerPage)
-		.limit(booksPerPage)
-		.forEach((book) => books.push(book))
-		.then(() => {
-			res.status(200).json(books);
-		})
-		.catch((err) => {
-			res.status(500).json({
-				error: "Could not fetch the documents. ",
-				details: err,
-			});
-		});
+	const books = await Book.list({
+		page,
+		booksPerPage,
+	});
+	let booksObj = books.books;
+	let errorObj = {
+		error: books.error,
+		msg: books.msg,
+	};
+	let code = books.status || 200;
+	res.status(code).json(books.error ? errorObj : booksObj);
 });
 
 // Obtener un libro en particular.
-router.get("/:id", (req, res) => {
+router.get("/:id", async (req, res) => {
 	let id = req.params.id;
 	if (!ObjectId.isValid(id)) {
 		res.status(400).json({
@@ -42,25 +37,23 @@ router.get("/:id", (req, res) => {
 		});
 		return;
 	}
-	db.collection("books")
-		.findOne({ _id: new ObjectId(id) })
-		.then((doc) => {
-			res.status(200).json(doc);
-		})
-		.catch((err) => {
-			res.status(500).json({
-				msg: "Could not fetch the specified documents. ",
-				err,
-			});
-		});
+	const books = await Book.listOne(id);
+	let booksObj = books.book;
+	let errorObj = {
+		error: books.error,
+		msg: books.msg,
+	};
+	let code = books.status || 200;
+	res.status(code).json(books.error ? errorObj : booksObj);
 	return;
 });
 
 // Insertar datos de un nuevo libro.
 router.post("/", (req, res) => {
 	const book = req.body;
-	db.collection("books")
-		.insertOne(book)
+	Book.create({
+		...book,
+	})
 		.then((result) => {
 			res.status(201).json(result);
 		})
@@ -78,10 +71,9 @@ router.delete("/:id", (req, res) => {
 		});
 		return;
 	}
-	db.collection("books")
-		.deleteOne({ _id: new ObjectId(id) })
+	Book.deleteOne({ _id: new ObjectId(id) })
 		.then((result) => {
-			res.status(201).json(result);
+			res.status(200).json(result);
 		})
 		.catch((err) => {
 			res.status(500).json(err);
@@ -98,10 +90,9 @@ router.patch("/:id", (req, res) => {
 		});
 		return;
 	}
-	db.collection("books")
-		.updateOne({ _id: new ObjectId(id) }, { $set: updates })
+	Book.updateOne({ _id: new ObjectId(id) }, { $set: updates })
 		.then((result) => {
-			res.status(201).json(result);
+			res.status(200).json(result);
 		})
 		.catch((err) => {
 			res.status(500).json(err);
