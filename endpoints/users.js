@@ -79,12 +79,12 @@ router.post("/signup", async (req, res) => {
 router.get("/protected", async (req, res) => {
 	// Check if the user's session cookie exists
 	if (!req.cookies.userSession) {
-		return res.status(403).json({ message: "Non-Authorized" });
+		return res.status(401).json({ message: "Non-Authorized" });
 	}
 	// Create a new ObjectId from the user's session cookie
 	const uid = req.cookies.userSession;
 
-	let user = await User.findById(uid);
+	let user = await User.findById(uid).select("-password");
 
 	// If the cookie exists, the user is logged in
 	res.status(200).json({
@@ -92,6 +92,27 @@ router.get("/protected", async (req, res) => {
 		userID: req.cookies.userSession,
 		user,
 	});
+});
+
+router.get("/:username", async (req, res) => {
+	try {
+		const username = req.params.username;
+		let user = await User.findOne({ username }, { password: 0 });
+		if (!user) {
+			res.status(404).json({
+				message: "User not found. ",
+			});
+			return;
+		}
+		res.status(200).json(user);
+		return;
+	} catch (e) {
+		console.log({ e });
+		res.status(500).json({
+			message: "An error occured. ",
+		});
+		return;
+	}
 });
 
 module.exports = router;

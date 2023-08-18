@@ -1,5 +1,6 @@
 "use strict";
 const express = require("express");
+const path = require("path");
 const { ObjectId } = require("mongodb");
 const { connectToDB, getDB } = require("./db");
 const routes = require("./endpoints/index.js");
@@ -23,3 +24,5 @@ connectToDB((err) => {
 // Routes
 app.use("/users", routes.users);
 app.use("/books", routes.books);
+// Servir contenido estático de la carpeta 'simple-page'
+app.use("/test", express.static(path.join(__dirname, "simple-page")));
